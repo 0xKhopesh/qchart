@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Question Chart</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="mainScreen">
+        <button id="themeToggle" title="Toggle light/dark mode">☀️ Light Mode</button>
+
+        <div id="questionGrid">
+        </div>
+
+        <div id="controlsBar">
+            <label id="randomLabel"><input type="checkbox" id="optRandom"> Randomize Order</label>
+            <label id="groupLabel" class="hidden"><input type="checkbox" id="optGroup"> Keep Categories Together</label>
+            <button id="displayBtn">Generate</button>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <button id="closeOverlay">✕</button>
+        <div id="overlayContent">
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
