@@ -102,7 +102,7 @@ const categories = {
         "How often do you get horny?",
         "What is something unexpected someone would learn from fucking you?",
         "Do you masturbate? How often?",
-        "What are your favourite positions?",
+        "What are your favourite sex positions?",
         "Which is better, spitting or swallowing?",
         "What simple/innocent thing never fails to turn you on?",
         "When did you last masturbate?",
