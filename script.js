@@ -1,4 +1,6 @@
+
 let flatQuestions = [];
+
 
 function initTheme() {
     const saved = localStorage.getItem('icebreakTheme');
@@ -139,6 +141,15 @@ function createOverlayItem(displayNumber, q) {
     return item;
 }
 
+function getRequestedCount(maxAvailable) {
+    const countInput = document.getElementById('optCount');
+    let count = parseInt(countInput.value, 10);
+    if (isNaN(count) || count < 1) count = 1;
+    count = Math.min(count, 100, maxAvailable);
+    countInput.value = count;
+    return count;
+}
+
 function renderOverlay() {
     const overlayContent = document.getElementById('overlayContent');
     overlayContent.innerHTML = '';
@@ -156,11 +167,14 @@ function renderOverlay() {
         return;
     }
 
+    const count = getRequestedCount(checked.length);
     const ordered = buildOverlayOrder(checked, randomize, keepGrouped);
+    const limited = ordered.slice(0, count);
+
     const showCategoryHeaders = randomize && keepGrouped;
 
     let currentCategory = null;
-    ordered.forEach((q, i) => {
+    limited.forEach((q, i) => {
         if (showCategoryHeaders && q.category !== currentCategory) {
             currentCategory = q.category;
             const catHeader = document.createElement('div');
@@ -175,16 +189,24 @@ function renderOverlay() {
 function fitOverlayToScreen() {
     const content = document.getElementById('overlayContent');
     const bottomBuffer = 40;
-
-    let scale = 1;
     const minScale = 0.4;
     const step = 0.05;
 
-    content.style.setProperty('--ov-scale', scale);
+    content.style.height = 'auto';
+    content.style.setProperty('--ov-scale', 1);
 
-    const availableHeight = window.innerHeight - content.getBoundingClientRect().top - bottomBuffer;
+    const top = content.getBoundingClientRect().top;
+    const availableHeight = window.innerHeight - top - bottomBuffer;
 
-    while (content.scrollHeight > availableHeight && scale > minScale) {
+    if (content.scrollHeight <= availableHeight) {
+        return;
+    }
+
+    content.style.height = availableHeight + 'px';
+
+    let scale = 1;
+
+    while (content.scrollWidth > content.clientWidth && scale > minScale) {
         scale = Math.round((scale - step) * 100) / 100;
         content.style.setProperty('--ov-scale', scale);
     }
@@ -195,10 +217,24 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     renderMainScreen();
 
+    const countInput = document.getElementById('optCount');
+    const defaultCount = 20;
+    countInput.value = Math.min(defaultCount, flatQuestions.length) || 1;
+
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
-    document.getElementById('optRandom').addEventListener('change', function () {
-        document.getElementById('groupLabel').classList.toggle('hidden', !this.checked);
+    const randomCheckbox = document.getElementById('optRandom');
+    const groupLabel = document.getElementById('groupLabel');
+    groupLabel.classList.toggle('hidden', !randomCheckbox.checked); // reflect default-checked state
+    randomCheckbox.addEventListener('change', function () {
+        groupLabel.classList.toggle('hidden', !this.checked);
+    });
+
+    countInput.addEventListener('change', function () {
+        let v = parseInt(this.value, 10);
+        if (isNaN(v) || v < 1) v = 1;
+        if (v > 100) v = 100;
+        this.value = v;
     });
 
     document.getElementById('displayBtn').addEventListener('click', () => {
