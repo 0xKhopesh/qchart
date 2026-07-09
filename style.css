@@ -139,6 +139,16 @@ cursor: pointer;
 user-select: none;
 }
 
+#controlsBar input[type="number"] {
+width: 60px;
+padding: 4px 6px;
+font-size: 0.95em;
+background: var(--color-bg);
+color: var(--color-text);
+border: 1px solid var(--color-border);
+border-radius: 4px;
+}
+
 .hidden {
     display: none !important;
 }
@@ -175,12 +185,13 @@ color: var(--color-text);
 border-radius: 12px;
 padding: calc(30px * var(--ov-scale)) calc(40px * var(--ov-scale));
 max-width: 1400px;
+width: fit-content;
 margin: 0 auto;
 column-width: calc(260px * var(--ov-scale));
 -webkit-column-width: calc(260px * var(--ov-scale));
 -moz-column-width: calc(260px * var(--ov-scale));
 column-gap: calc(25px * var(--ov-scale));
-column-fill: balance;
+column-fill: auto;
 font-size: calc(0.95em * var(--ov-scale));
 }
 
