@@ -67,14 +67,15 @@ const categories = {
         "What is your typical evening like?",
         "When is the best time to shower?",
     ],
-    "Reddit": [ //5
+    "Reddit": [ //6
         "What is your favorite subreddit?",
         "What subreddit do you love but wouldn't ever admit to it?",
         "How much time per day do you spend on reddit?",
         "Do you follow any NSFW subreddits?",
         "What would happen if your irl friends could see your reddit history?",
+        "If you could make a subreddit about anything, what would it be?",
     ],
-    "Hypothetical": [ //15
+    "Hypothetical": [ //16
         "What would you choose as your superpower?",
         "What would be the worst superpower to have?",
         "What would be your three wishes to a Genie?",
@@ -90,14 +91,18 @@ const categories = {
         "What movie/game/show situation would you be terrified to be in?",
         "Deep sea mission or orbital space mission?",
         "You're given a budget of $100m to solve world hunger, what's your plan?",
+        "You have to take me on a weekend getaway, where would you take me?",
     ],
-    "NSFW": [ //20
+    "NSFW": [ //24
         "Are you a virgin?",
         "Have you ever given oral?",
         "What is your body count?",
         "Do you shave?",
         "Kissing during sex?",
+        "You have to fuck the person you're doing this chart with, which position do you choose?",
+        "What is the most amount of times you've masturbated in one day?",
         "How big is your dick/How big are your boobs?",
+        "Are you submissive, dominant or a switch?",
         "Uno reverse! Pick any number from the list and ask it",
         "How often do you get horny?",
         "What is something unexpected someone would learn from fucking you?",
@@ -107,6 +112,7 @@ const categories = {
         "What simple/innocent thing never fails to turn you on?",
         "When did you last masturbate?",
         "Best place to cum?",
+        "What happened in your last sex dream?",
         "Have you ever gotten handjob/been fingered?",
         "What is a secret kink no one knows you have?",
         "What is the weirdest place you've masturbated?",
