@@ -1,5 +1,5 @@
-const categories = {
-    "Identity": [ //15
+const categories = { //112
+    "Identity": [ //18
         "What is your first name?",
         "What is your middle name?",
         "How old are you?",
@@ -15,6 +15,9 @@ const categories = {
         "What is your eye color?",
         "How many siblings do you have?",
         "Do you have any pets?",
+        "How many languages do you speak?",
+        "Are you more spiritual or material?",
+        "How would others describe you irl?",
     ],
     "Preferences": [ //20
         "What is your favorite movie?",
@@ -38,7 +41,7 @@ const categories = {
         "Favourite academic subject?",
         "What is your favourite junk/fast food?"
     ],
-    "Life": [ //15
+    "Life": [ //18
         "What are your career goals?",
         "What is the hardest challenge you've faced in life?",
         "How many relationships have you had?",
@@ -54,6 +57,9 @@ const categories = {
         "Would you get married?",
         "Do you want kids?",
         "Have you ever done a thrillseeking activity? (skydiving etc)",
+        "What is a life lesson you learned the hard way?",
+        "If you could instantly master any skill, what would it be?",
+        "What are the top 3 things on your bucket list?",
     ],
     "Lifestyle" : [ //10
         "Are you a nightowl?",
@@ -73,7 +79,7 @@ const categories = {
         "How much time per day do you spend on reddit?",
         "Do you follow any NSFW subreddits?",
         "What would happen if your irl friends could see your reddit history?",
-        "If you could make a subreddit about anything, what would it be?",
+        "How long could you go without reddit?",
     ],
     "Hypothetical": [ //16
         "What would you choose as your superpower?",
@@ -97,13 +103,13 @@ const categories = {
         "Are you a virgin?",
         "Have you ever given oral?",
         "What is your body count?",
-        "Do you shave?",
+        "Do you trim/shave?",
         "Kissing during sex?",
         "You have to fuck the person you're doing this chart with, which position do you choose?",
         "What is the most amount of times you've masturbated in one day?",
         "How big is your dick/How big are your boobs?",
         "Are you submissive, dominant or a switch?",
-        "Uno reverse! Pick any number from the list and ask it",
+        "How often would you want to fuck in a long term relationship?",
         "How often do you get horny?",
         "What is something unexpected someone would learn from fucking you?",
         "Do you masturbate? How often?",
@@ -114,9 +120,9 @@ const categories = {
         "Best place to cum?",
         "What happened in your last sex dream?",
         "Have you ever gotten handjob/been fingered?",
-        "What is a secret kink no one knows you have?",
+        "What is your most taboo kink?",
         "What is the weirdest place you've masturbated?",
         "Do you prefer rough or gentle sex?",
-        "Sexually speaking, What is your absolute weakness?",
+        "Sexually speaking, What completely pushes you over the edge?",
     ],
 }
