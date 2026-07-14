@@ -1,6 +1,6 @@
-
 let flatQuestions = [];
 
+const ITEMS_PER_COLUMN = 20;
 
 function initTheme() {
     const saved = localStorage.getItem('icebreakTheme');
@@ -22,7 +22,6 @@ function updateThemeButtonLabel() {
     btn.textContent = isLight ? '🌙 Dark Mode' : '☀️ Light Mode';
 }
 
-
 function renderMainScreen() {
     const grid = document.getElementById('questionGrid');
     if (!grid) return;
@@ -39,6 +38,9 @@ function createCategoryBlock(categoryName, questions) {
     const block = document.createElement('div');
     block.className = 'category-block';
 
+    const headerRow = document.createElement('div');
+    headerRow.className = 'category-header-row';
+
     const headerLabel = document.createElement('label');
     headerLabel.className = 'category-header';
 
@@ -49,7 +51,20 @@ function createCategoryBlock(categoryName, questions) {
 
     headerLabel.appendChild(headerCheckbox);
     headerLabel.append(` ${categoryName}`);
-    block.appendChild(headerLabel);
+
+    const collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'collapse-toggle';
+    collapseBtn.textContent = '▾';
+    collapseBtn.setAttribute('aria-expanded', 'true');
+    collapseBtn.setAttribute('aria-label', `Collapse ${categoryName}`);
+
+    headerRow.appendChild(headerLabel);
+    headerRow.appendChild(collapseBtn);
+    block.appendChild(headerRow);
+
+    const questionsContainer = document.createElement('div');
+    questionsContainer.className = 'questions-container';
 
     const childCheckboxes = [];
     questions.forEach((qText) => {
@@ -65,7 +80,7 @@ function createCategoryBlock(categoryName, questions) {
 
         qLabel.appendChild(qCheck);
         qLabel.append(` ${qText}`);
-        block.appendChild(qLabel);
+        questionsContainer.appendChild(qLabel);
 
         childCheckboxes.push(qCheck);
 
@@ -75,6 +90,8 @@ function createCategoryBlock(categoryName, questions) {
             checkboxEl: qCheck
         });
     });
+
+    block.appendChild(questionsContainer);
 
     headerCheckbox.addEventListener('change', function () {
         childCheckboxes.forEach(cb => (cb.checked = this.checked));
@@ -86,7 +103,43 @@ function createCategoryBlock(categoryName, questions) {
         });
     });
 
+    collapseBtn.addEventListener('click', () => {
+        const nowCollapsed = block.classList.toggle('collapsed');
+        questionsContainer.style.display = nowCollapsed ? 'none' : '';
+        collapseBtn.setAttribute('aria-expanded', String(!nowCollapsed));
+        collapseBtn.setAttribute('aria-label', (nowCollapsed ? 'Expand ' : 'Collapse ') + categoryName);
+        recomputeGridHeight();
+    });
+
     return block;
+}
+
+function recomputeGridHeight() {
+    const grid = document.getElementById('questionGrid');
+    const controlsBar = document.getElementById('controlsBar');
+    if (!grid) return;
+
+    let tallest = 0;
+    grid.querySelectorAll('.category-block').forEach(block => {
+        const style = getComputedStyle(block);
+        const marginBottom = parseFloat(style.marginBottom) || 0;
+        const h = block.offsetHeight + marginBottom;
+        if (h > tallest) tallest = h;
+    });
+
+        const controlsHeight = controlsBar ? controlsBar.offsetHeight : 0;
+        const viewportAvailable = window.innerHeight - controlsHeight;
+
+        const targetHeight = Math.max(viewportAvailable, tallest + 4);
+        grid.style.height = targetHeight + 'px';
+}
+
+function debounce(fn, wait) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), wait);
+    };
 }
 
 function shuffleArray(arr) {
@@ -124,7 +177,36 @@ function buildOverlayOrder(checkedQuestions, randomize, keepGrouped) {
     return shuffleArray(checkedQuestions);
 }
 
-function createOverlayItem(displayNumber, q) {
+function buildColumns(limitedQuestions, showCategoryHeaders, itemsPerColumn) {
+    const columns = [];
+    let currentColumn = [];
+    let countInColumn = 0;
+    let currentCategory = null;
+
+    limitedQuestions.forEach((q, i) => {
+        if (showCategoryHeaders && q.category !== currentCategory) {
+            currentCategory = q.category;
+            currentColumn.push({ type: 'header', text: currentCategory });
+        }
+
+        currentColumn.push({ type: 'question', number: i + 1, text: q.text });
+        countInColumn++;
+
+        if (countInColumn >= itemsPerColumn) {
+            columns.push(currentColumn);
+            currentColumn = [];
+            countInColumn = 0;
+        }
+    });
+
+    if (currentColumn.length > 0) {
+        columns.push(currentColumn);
+    }
+
+    return columns;
+}
+
+function createOverlayItem(displayNumber, text) {
     const item = document.createElement('div');
     item.className = 'overlay-item';
 
@@ -132,12 +214,12 @@ function createOverlayItem(displayNumber, q) {
     num.className = 'overlay-number';
     num.textContent = displayNumber + '.';
 
-    const text = document.createElement('span');
-    text.className = 'overlay-text';
-    text.textContent = q.text;
+    const textEl = document.createElement('span');
+    textEl.className = 'overlay-text';
+    textEl.textContent = text;
 
     item.appendChild(num);
-    item.appendChild(text);
+    item.appendChild(textEl);
     return item;
 }
 
@@ -145,7 +227,7 @@ function getRequestedCount(maxAvailable) {
     const countInput = document.getElementById('optCount');
     let count = parseInt(countInput.value, 10);
     if (isNaN(count) || count < 1) count = 1;
-    count = Math.min(count, 100, maxAvailable);
+    count = Math.min(count, 40, maxAvailable);
     countInput.value = count;
     return count;
 }
@@ -172,50 +254,54 @@ function renderOverlay() {
     const limited = ordered.slice(0, count);
 
     const showCategoryHeaders = randomize && keepGrouped;
+    const columns = buildColumns(limited, showCategoryHeaders, ITEMS_PER_COLUMN);
 
-    let currentCategory = null;
-    limited.forEach((q, i) => {
-        if (showCategoryHeaders && q.category !== currentCategory) {
-            currentCategory = q.category;
-            const catHeader = document.createElement('div');
-            catHeader.className = 'overlay-category-header';
-            catHeader.textContent = currentCategory;
-            overlayContent.appendChild(catHeader);
-        }
-        overlayContent.appendChild(createOverlayItem(i + 1, q));
+    columns.forEach(columnEntries => {
+        const columnEl = document.createElement('div');
+        columnEl.className = 'overlay-column';
+
+        columnEntries.forEach(entry => {
+            if (entry.type === 'header') {
+                const catHeader = document.createElement('div');
+                catHeader.className = 'overlay-category-header';
+                catHeader.textContent = entry.text;
+                columnEl.appendChild(catHeader);
+            } else {
+                columnEl.appendChild(createOverlayItem(entry.number, entry.text));
+            }
+        });
+
+        overlayContent.appendChild(columnEl);
     });
 }
 
 function fitOverlayToScreen() {
     const content = document.getElementById('overlayContent');
-    const bottomBuffer = 40;
+    const buffer = 40;
     const minScale = 0.4;
     const step = 0.05;
 
-    content.style.height = 'auto';
-    content.style.setProperty('--ov-scale', 1);
+    let scale = 1;
+    content.style.setProperty('--ov-scale', scale);
 
     const top = content.getBoundingClientRect().top;
-    const availableHeight = window.innerHeight - top - bottomBuffer;
+    const availableHeight = window.innerHeight - top - buffer;
+    const availableWidth = window.innerWidth - buffer * 2;
 
-    if (content.scrollHeight <= availableHeight) {
-        return;
-    }
-
-    content.style.height = availableHeight + 'px';
-
-    let scale = 1;
-
-    while (content.scrollWidth > content.clientWidth && scale > minScale) {
+    while (
+        (content.scrollWidth > availableWidth || content.scrollHeight > availableHeight) &&
+        scale > minScale
+    ) {
         scale = Math.round((scale - step) * 100) / 100;
         content.style.setProperty('--ov-scale', scale);
     }
 }
 
-
+//  Init
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     renderMainScreen();
+    recomputeGridHeight();
 
     const countInput = document.getElementById('optCount');
     const defaultCount = 20;
@@ -225,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const randomCheckbox = document.getElementById('optRandom');
     const groupLabel = document.getElementById('groupLabel');
-    groupLabel.classList.toggle('hidden', !randomCheckbox.checked); // reflect default-checked state
+    groupLabel.classList.toggle('hidden', !randomCheckbox.checked);
     randomCheckbox.addEventListener('change', function () {
         groupLabel.classList.toggle('hidden', !this.checked);
     });
@@ -233,7 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
     countInput.addEventListener('change', function () {
         let v = parseInt(this.value, 10);
         if (isNaN(v) || v < 1) v = 1;
-        if (v > 100) v = 100;
+        if (v > 40) v = 40;
         this.value = v;
     });
 
@@ -247,10 +333,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('overlay').style.display = 'none';
     });
 
-    window.addEventListener('resize', () => {
+    window.addEventListener('resize', debounce(() => {
+        recomputeGridHeight();
         const overlay = document.getElementById('overlay');
         if (overlay.style.display === 'block') {
             fitOverlayToScreen();
         }
-    });
+    }, 120));
 });
