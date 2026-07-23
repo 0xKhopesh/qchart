@@ -1,4 +1,9 @@
 let flatQuestions = [];
+let categoryBlockList = [];
+
+const COLUMN_WIDTH = 280;
+const COLUMN_GAP = 30;
+const CARD_GAP = 20;
 
 const ITEMS_PER_COLUMN = 20;
 
@@ -27,11 +32,19 @@ function renderMainScreen() {
     if (!grid) return;
     grid.innerHTML = '';
     flatQuestions = [];
+    categoryBlockList = [];
+
+    const tempColumn = document.createElement('div');
+    tempColumn.className = 'grid-column';
+    grid.appendChild(tempColumn);
 
     for (const [categoryName, questions] of Object.entries(categories)) {
         const block = createCategoryBlock(categoryName, questions);
-        grid.appendChild(block);
+        categoryBlockList.push(block);
+        tempColumn.appendChild(block);
     }
+
+    layoutColumns();
 }
 
 function createCategoryBlock(categoryName, questions) {
@@ -108,30 +121,57 @@ function createCategoryBlock(categoryName, questions) {
         questionsContainer.style.display = nowCollapsed ? 'none' : '';
         collapseBtn.setAttribute('aria-expanded', String(!nowCollapsed));
         collapseBtn.setAttribute('aria-label', (nowCollapsed ? 'Expand ' : 'Collapse ') + categoryName);
-        recomputeGridHeight();
+        layoutColumns();
     });
 
     return block;
 }
 
-function recomputeGridHeight() {
+function layoutColumns() {
     const grid = document.getElementById('questionGrid');
-    const controlsBar = document.getElementById('controlsBar');
-    if (!grid) return;
+    if (!grid || categoryBlockList.length === 0) return;
 
-    let tallest = 0;
-    grid.querySelectorAll('.category-block').forEach(block => {
-        const style = getComputedStyle(block);
-        const marginBottom = parseFloat(style.marginBottom) || 0;
-        const h = block.offsetHeight + marginBottom;
-        if (h > tallest) tallest = h;
+    const gridStyles = getComputedStyle(grid);
+    const paddingLeft = parseFloat(gridStyles.paddingLeft) || 0;
+    const paddingRight = parseFloat(gridStyles.paddingRight) || 0;
+    const availableWidth = grid.clientWidth - paddingLeft - paddingRight;
+
+    const numColumns = Math.max(
+        1,
+        Math.floor((availableWidth + COLUMN_GAP) / (COLUMN_WIDTH + COLUMN_GAP))
+    );
+
+    const heights = categoryBlockList.map(block => block.offsetHeight);
+    const totalHeight = heights.reduce((sum, h) => sum + h + CARD_GAP, 0);
+    const tallestSingle = Math.max(...heights) + CARD_GAP;
+
+    const targetHeight = Math.max(totalHeight / numColumns, tallestSingle);
+
+    const columnBuckets = Array.from({ length: numColumns }, () => []);
+    let columnIndex = 0;
+    let currentColumnHeight = 0;
+
+    categoryBlockList.forEach((block, i) => {
+        const h = heights[i] + CARD_GAP;
+        const wouldOverflow = currentColumnHeight + h > targetHeight;
+        const hasRoomToMoveOn = columnIndex < numColumns - 1;
+
+        if (wouldOverflow && currentColumnHeight > 0 && hasRoomToMoveOn) {
+            columnIndex++;
+            currentColumnHeight = 0;
+        }
+
+        columnBuckets[columnIndex].push(block);
+        currentColumnHeight += h;
     });
 
-        const controlsHeight = controlsBar ? controlsBar.offsetHeight : 0;
-        const viewportAvailable = window.innerHeight - controlsHeight;
-
-        const targetHeight = Math.max(viewportAvailable, tallest + 4);
-        grid.style.height = targetHeight + 'px';
+    grid.innerHTML = '';
+    columnBuckets.forEach(blocks => {
+        const columnEl = document.createElement('div');
+        columnEl.className = 'grid-column';
+        blocks.forEach(block => columnEl.appendChild(block));
+        grid.appendChild(columnEl);
+    });
 }
 
 function debounce(fn, wait) {
@@ -297,47 +337,45 @@ function fitOverlayToScreen() {
     }
 }
 
-//  Init
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     renderMainScreen();
-    recomputeGridHeight();
 
-    const countInput = document.getElementById('optCount');
-    const defaultCount = 20;
-    countInput.value = Math.min(defaultCount, flatQuestions.length) || 1;
+const countInput = document.getElementById('optCount');
+const defaultCount = 20;
+countInput.value = Math.min(defaultCount, flatQuestions.length) || 1;
 
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
-    const randomCheckbox = document.getElementById('optRandom');
-    const groupLabel = document.getElementById('groupLabel');
-    groupLabel.classList.toggle('hidden', !randomCheckbox.checked);
-    randomCheckbox.addEventListener('change', function () {
-        groupLabel.classList.toggle('hidden', !this.checked);
-    });
+const randomCheckbox = document.getElementById('optRandom');
+const groupLabel = document.getElementById('groupLabel');
+groupLabel.classList.toggle('hidden', !randomCheckbox.checked);
+randomCheckbox.addEventListener('change', function () {
+    groupLabel.classList.toggle('hidden', !this.checked);
+});
 
-    countInput.addEventListener('change', function () {
-        let v = parseInt(this.value, 10);
-        if (isNaN(v) || v < 1) v = 1;
-        if (v > 40) v = 40;
-        this.value = v;
-    });
+countInput.addEventListener('change', function () {
+    let v = parseInt(this.value, 10);
+    if (isNaN(v) || v < 1) v = 1;
+    if (v > 40) v = 40;
+    this.value = v;
+});
 
-    document.getElementById('displayBtn').addEventListener('click', () => {
-        renderOverlay();
-        document.getElementById('overlay').style.display = 'block';
+document.getElementById('displayBtn').addEventListener('click', () => {
+    renderOverlay();
+    document.getElementById('overlay').style.display = 'block';
+    fitOverlayToScreen();
+});
+
+document.getElementById('closeOverlay').addEventListener('click', () => {
+    document.getElementById('overlay').style.display = 'none';
+});
+
+window.addEventListener('resize', debounce(() => {
+    layoutColumns();
+    const overlay = document.getElementById('overlay');
+    if (overlay.style.display === 'block') {
         fitOverlayToScreen();
-    });
-
-    document.getElementById('closeOverlay').addEventListener('click', () => {
-        document.getElementById('overlay').style.display = 'none';
-    });
-
-    window.addEventListener('resize', debounce(() => {
-        recomputeGridHeight();
-        const overlay = document.getElementById('overlay');
-        if (overlay.style.display === 'block') {
-            fitOverlayToScreen();
-        }
-    }, 120));
+    }
+}, 120));
 });
