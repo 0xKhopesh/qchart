@@ -62,29 +62,32 @@ cursor: pointer;
 }
 
 #questionGrid {
-column-width: 280px;
--webkit-column-width: 280px;
--moz-column-width: 280px;
-column-gap: 30px;
--webkit-column-gap: 30px;
--moz-column-gap: 30px;
-column-fill: auto;
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: flex-start;
+flex-wrap: nowrap;
+gap: 30px;
 width: 100%;
 padding: 60px 30px 30px;
 background: var(--color-panel);
 }
 
+.grid-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 280px;
+    flex-shrink: 0;
+}
+
 .category-block {
     width: 100%;
-    margin-bottom: 20px;
     background: var(--color-card);
     border: 1px solid var(--color-card-border);
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 1px 3px var(--color-shadow);
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    page-break-inside: avoid;
 }
 
 .category-header-row {
@@ -137,8 +140,6 @@ background: var(--color-panel);
     padding: 4px 0 4px 25px;
     font-size: 0.95em;
     cursor: pointer;
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
 }
 
 .question-label input[type="checkbox"] {
@@ -196,8 +197,6 @@ cursor: pointer;
 #displayBtn:hover {
 background: var(--color-accent-hover);
 }
-
-/* ============ Overlay (screenshot view) ============ */
 
 #overlay {
 display: none;
@@ -282,7 +281,7 @@ z-index: 1001;
 @media (max-width: 480px) {
     #questionGrid {
     padding: 60px 15px 15px;
-    column-gap: 15px;
+    gap: 15px;
     }
     #overlayContent {
     padding: 20px;
